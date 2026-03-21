@@ -25,6 +25,53 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## Autonomous Agent Backend
+
+This backend runs an autonomous orchestration loop that:
+
+- evaluates available providers with a weighted score (price, observed latency, quality)
+- calls provider APIs and detects HTTP 402 payment-required responses
+- settles payment through an Avalanche wallet contract (or mock proof fallback)
+- retries the provider request with payment proof and logs each step
+
+### Control and Monitoring Endpoints
+
+- `POST /agent/start`: Starts the loop. Optional body:
+
+```json
+{
+  "cycleIntervalMs": 10000,
+  "requestPayload": { "prompt": "hello" },
+  "providers": [
+    {
+      "id": "provider-alpha",
+      "name": "Provider Alpha",
+      "endpoint": "http://localhost:4001/x402/service",
+      "price": 0.12,
+      "qualityScore": 0.92,
+      "timeoutMs": 10000
+    }
+  ]
+}
+```
+
+- `POST /agent/stop`: Stops the loop.
+- `POST /agent/cycle`: Runs one cycle immediately.
+- `GET /agent/status`: Returns current runtime state.
+- `GET /agent/logs?limit=200`: Returns recent log entries.
+- `GET /agent/logs/stream`: Server-Sent Events stream for real-time frontend logs.
+
+### Environment Variables
+
+- `PORT`: HTTP port (default `3000`)
+- `CORS_ORIGIN`: comma-separated allowed origins (optional)
+- `AVAX_CHAIN_ID`: chain id used for mock mode (default `43113`)
+- `AVAX_RPC_URL`: Avalanche RPC URL for real transactions
+- `AVAX_PRIVATE_KEY`: signer private key for transaction submission
+- `AVAX_WALLET_CONTRACT`: wallet contract address exposing `payForService(...)`
+
+If `AVAX_RPC_URL`, `AVAX_PRIVATE_KEY`, or `AVAX_WALLET_CONTRACT` are missing, the service automatically switches to mock payment proof mode for local integration testing.
+
 ## Project setup
 
 ```bash
