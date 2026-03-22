@@ -35,7 +35,7 @@ services:
       SWAGGER_PATH: docs
       JWT_SECRET: change-this-in-production
       JWT_EXPIRES_IN: 2h
-      GOOGLE_CLIENT_ID: ''
+      GOOGLE_CLIENT_ID: 946564861094-v4vk3smcmiud4q5uh5sal8liaeg7kds9.apps.googleusercontent.com
       FUJI_RPC_URL: https://api.avax-test.network/ext/bc/C/rpc
       WALLET_ENCRYPTION_KEY: abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd
       AUTH_STORAGE: postgres
