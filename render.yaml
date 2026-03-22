@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: aleph-back
+    env: docker
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /rwa/status
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: AUTH_STORAGE
+        value: postgres
+      - key: DATABASE_URL
+        fromDatabase:
+          name: aleph-db
+          property: connectionString
+      - key: PGSSLMODE
+        value: require
+
+databases:
+  - name: aleph-db
+    databaseName: aleph_auth
+    user: aleph
+    plan: free

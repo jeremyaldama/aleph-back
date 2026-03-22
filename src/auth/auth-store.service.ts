@@ -156,17 +156,57 @@ export class AuthStoreService implements OnModuleInit, OnModuleDestroy {
     user?: string;
     password?: string;
     database?: string;
+    ssl?: { rejectUnauthorized: boolean };
   } {
-    if (process.env.DATABASE_URL) {
-      return { connectionString: process.env.DATABASE_URL };
+    const connectionString = process.env.DATABASE_URL;
+    const sslEnabled = this.isSslEnabled();
+
+    if (connectionString) {
+      return {
+        connectionString,
+        ssl: sslEnabled ? { rejectUnauthorized: false } : undefined,
+      };
+    }
+
+    const host = process.env.POSTGRES_HOST ?? process.env.PGHOST;
+    const port = Number(
+      process.env.POSTGRES_PORT ?? process.env.PGPORT ?? 5432,
+    );
+    const user = process.env.POSTGRES_USER ?? process.env.PGUSER;
+    const password = process.env.POSTGRES_PASSWORD ?? process.env.PGPASSWORD;
+    const database = process.env.POSTGRES_DB ?? process.env.PGDATABASE;
+
+    if (
+      process.env.NODE_ENV === 'production' &&
+      (!host || !user || !database)
+    ) {
+      throw new Error(
+        'Postgres auth storage is enabled but database connection variables are missing. Set DATABASE_URL or POSTGRES_/PG* variables in your Render service.',
+      );
     }
 
     return {
-      host: process.env.POSTGRES_HOST ?? 'localhost',
-      port: Number(process.env.POSTGRES_PORT ?? 5432),
-      user: process.env.POSTGRES_USER ?? 'aleph',
-      password: process.env.POSTGRES_PASSWORD ?? 'aleph',
-      database: process.env.POSTGRES_DB ?? 'aleph_auth',
+      host: host ?? 'localhost',
+      port,
+      user: user ?? 'aleph',
+      password: password ?? 'aleph',
+      database: database ?? 'aleph_auth',
+      ssl: sslEnabled ? { rejectUnauthorized: false } : undefined,
     };
+  }
+
+  private isSslEnabled(): boolean {
+    const mode = (process.env.PGSSLMODE ?? '').toLowerCase();
+    const explicitSsl = (process.env.DATABASE_SSL ?? '').toLowerCase();
+
+    if (explicitSsl === 'true') {
+      return true;
+    }
+
+    return (
+      mode === 'require' ||
+      mode === 'prefer' ||
+      process.env.NODE_ENV === 'production'
+    );
   }
 }

@@ -116,6 +116,35 @@ docker compose down
 
 With compose, auth persistence runs on PostgreSQL by default (`AUTH_STORAGE=postgres` in `docker-compose.yml`).
 
+### Render Deployment (Web Service + Managed PostgreSQL)
+
+This repository includes a Render Blueprint at `render.yaml`.
+
+Deploy flow:
+
+1. Push this repo to GitHub.
+2. In Render, choose **New +** -> **Blueprint**.
+3. Select the repository and apply the blueprint.
+
+The blueprint creates:
+
+- web service `aleph-back` (Docker runtime)
+- managed Postgres database `aleph-db`
+- `DATABASE_URL` injected from the database
+
+Important notes:
+
+- `docker-compose.yml` is for local development only.
+- The hostname `db` works inside local Docker Compose, but not on Render web services.
+- On Render, always use `DATABASE_URL` (or `PG*`/`POSTGRES_*` variables) from Render environment settings.
+
+If you deploy manually without Blueprint, set at least:
+
+- `NODE_ENV=production`
+- `AUTH_STORAGE=postgres`
+- `DATABASE_URL=<Render Postgres connection string>`
+- `PGSSLMODE=require`
+
 ## Project setup
 
 ```bash
