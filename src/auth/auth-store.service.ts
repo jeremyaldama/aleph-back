@@ -1,4 +1,9 @@
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import { Pool } from 'pg';
 import type { AuthUser } from './auth.types';
 
@@ -16,6 +21,7 @@ interface AuthUserRow {
 
 @Injectable()
 export class AuthStoreService implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(AuthStoreService.name);
   private pool: Pool | null = null;
   private readonly usersByEmail = new Map<string, AuthUser>();
   private readonly usersById = new Map<string, AuthUser>();
@@ -145,7 +151,8 @@ export class AuthStoreService implements OnModuleInit, OnModuleDestroy {
     return (
       process.env.AUTH_STORAGE === 'postgres' ||
       !!process.env.DATABASE_URL ||
-      !!process.env.POSTGRES_HOST
+      !!process.env.POSTGRES_HOST ||
+      !!process.env.PGHOST
     );
   }
 
@@ -160,14 +167,6 @@ export class AuthStoreService implements OnModuleInit, OnModuleDestroy {
   } {
     const connectionString = process.env.DATABASE_URL;
     const sslEnabled = this.isSslEnabled();
-
-    if (connectionString) {
-      return {
-        connectionString,
-        ssl: sslEnabled ? { rejectUnauthorized: false } : undefined,
-      };
-    }
-
     const host = process.env.POSTGRES_HOST ?? process.env.PGHOST;
     const port = Number(
       process.env.POSTGRES_PORT ?? process.env.PGPORT ?? 5432,
@@ -176,10 +175,18 @@ export class AuthStoreService implements OnModuleInit, OnModuleDestroy {
     const password = process.env.POSTGRES_PASSWORD ?? process.env.PGPASSWORD;
     const database = process.env.POSTGRES_DB ?? process.env.PGDATABASE;
 
-    if (
-      process.env.NODE_ENV === 'production' &&
-      (!host || !user || !database)
-    ) {
+    this.logger.log(
+      `Postgres config source: DATABASE_URL=${connectionString ? 'set' : 'missing'}, host=${host ?? 'missing'}, port=${port}, user=${user ? 'set' : 'missing'}, database=${database ?? 'missing'}`,
+    );
+
+    if (connectionString) {
+      return {
+        connectionString,
+        ssl: sslEnabled ? { rejectUnauthorized: false } : undefined,
+      };
+    }
+
+    if (!host || !user || !database) {
       throw new Error(
         'Postgres auth storage is enabled but database connection variables are missing. Set DATABASE_URL or POSTGRES_/PG* variables in your Render service.',
       );
