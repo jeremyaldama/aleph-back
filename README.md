@@ -25,52 +25,49 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
-## Autonomous Agent Backend
+## Procurement RWA Backend (Private Avalanche L1)
 
-This backend runs an autonomous orchestration loop that:
+This backend orchestrates permissioned procurement pools for small retailers and turns aggregated purchase demand into financeable RWAs.
 
-- evaluates available providers with a weighted score (price, observed latency, quality)
-- calls provider APIs and detects HTTP 402 payment-required responses
-- settles payment through an Avalanche wallet contract (or mock proof fallback)
-- retries the provider request with payment proof and logs each step
+Core workflow:
 
-### Control and Monitoring Endpoints
+- verifies merchants and enforces permissioned pool membership
+- accepts encrypted merchant commitments (quantity/pricing protected at transfer level)
+- aggregates commitments into a structured order
+- tokenizes each aggregated order into entitlement and repayment representations
+- tracks financing, settlement triggers, and repayment lifecycle events
+- prepares eligible orders for bridging to public Avalanche liquidity venues
 
-- `POST /agent/start`: Starts the loop. Optional body:
+### API Endpoints
 
-```json
-{
-  "cycleIntervalMs": 10000,
-  "requestPayload": { "prompt": "hello" },
-  "providers": [
-    {
-      "id": "provider-alpha",
-      "name": "Provider Alpha",
-      "endpoint": "http://localhost:4001/x402/service",
-      "price": 0.12,
-      "qualityScore": 0.92,
-      "timeoutMs": 10000
-    }
-  ]
-}
-```
-
-- `POST /agent/stop`: Stops the loop.
-- `POST /agent/cycle`: Runs one cycle immediately.
-- `GET /agent/status`: Returns current runtime state.
-- `GET /agent/logs?limit=200`: Returns recent log entries.
-- `GET /agent/logs/stream`: Server-Sent Events stream for real-time frontend logs.
+- `POST /rwa/merchants/verify`
+- `POST /rwa/pools`
+- `GET /rwa/pools/:poolId`
+- `POST /rwa/commitments`
+- `POST /rwa/orders/aggregate`
+- `POST /rwa/orders/tokenize`
+- `POST /rwa/orders/finance`
+- `POST /rwa/orders/settle`
+- `POST /rwa/orders/repayment`
+- `POST /rwa/orders/bridge`
+- `GET /rwa/orders`
+- `GET /rwa/orders/:orderId`
+- `GET /rwa/status`
+- `GET /rwa/logs?limit=200`
+- `GET /rwa/logs/stream` (SSE)
 
 ### Environment Variables
 
 - `PORT`: HTTP port (default `3000`)
 - `CORS_ORIGIN`: comma-separated allowed origins (optional)
-- `AVAX_CHAIN_ID`: chain id used for mock mode (default `43113`)
-- `AVAX_RPC_URL`: Avalanche RPC URL for real transactions
-- `AVAX_PRIVATE_KEY`: signer private key for transaction submission
-- `AVAX_WALLET_CONTRACT`: wallet contract address exposing `payForService(...)`
+- `PERMISSIONED_MERCHANTS`: comma-separated merchant IDs allowed by policy
+- `ORDER_ENCRYPTION_KEY`: encryption secret (hex-64 recommended)
+- `PRIVATE_L1_RPC_URL`: private Avalanche L1 RPC endpoint
+- `PRIVATE_L1_SIGNER_PK`: signer private key for L1 transactions
+- `POOL_MANAGER_CONTRACT`: pool manager contract address
+- `TOKENIZATION_CONTRACT`: tokenization/lifecycle contract address
 
-If `AVAX_RPC_URL`, `AVAX_PRIVATE_KEY`, or `AVAX_WALLET_CONTRACT` are missing, the service automatically switches to mock payment proof mode for local integration testing.
+If L1 RPC or contract configuration is missing, blockchain operations run in mock mode so local orchestration and frontend integration can still proceed.
 
 ## Project setup
 
