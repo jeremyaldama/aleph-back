@@ -9,6 +9,6 @@ import { AuthService } from './auth.service';
   imports: [JwtModule.register({})],
   controllers: [AuthController],
   providers: [AuthStoreService, AuthService, AuthGuard],
-  exports: [AuthService],
+  exports: [AuthService, AuthGuard],
 })
 export class AuthModule {}
