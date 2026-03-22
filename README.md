@@ -1,218 +1,196 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Aleph Platform
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Collaborative procurement platform for retailers and suppliers, with on-chain execution on Avalanche (Fuji/Testnet and Mainnet by environment), aggregated order tokenization, and a full financial lifecycle.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+This document describes the vision of the final functional system, not a reduced version.
 
-## Description
+## 1) System Vision
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Aleph connects retailers and suppliers in a coordinated purchasing network:
 
-## Procurement RWA Backend (Private Avalanche L1)
+- Retailers group together to consolidate demand.
+- Permissioned pools are created per campaign.
+- Each participant registers purchase commitments.
+- The system aggregates demand and creates a structured order.
+- The order is tokenized into operational/financial representations.
+- Financing, settlement, repayment, and bridge events are supported.
+- The full cycle is auditable through API and on-chain tx hash traceability.
 
-This backend orchestrates permissioned procurement pools for small retailers and turns aggregated purchase demand into financeable RWAs.
+## 2) Business Objectives
 
-Core workflow:
+- Improve negotiation power for small and mid-sized retailers.
+- Provide early visibility of real demand to suppliers.
+- Reduce operational friction in coordination, settlement, and collections.
+- Enable structured financing on top of tokenized orders.
+- Create a trust layer with cryptographic verifiability and on-chain records.
 
-- verifies merchants and enforces permissioned pool membership
-- accepts encrypted merchant commitments (quantity/pricing protected at transfer level)
-- aggregates commitments into a structured order
-- tokenizes each aggregated order into entitlement and repayment representations
-- tracks financing, settlement triggers, and repayment lifecycle events
-- prepares eligible orders for bridging to public Avalanche liquidity venues
+## 3) Actors
 
-### API Endpoints
+- Retailer: discovers products, joins campaigns, commits demand, and monitors orders and settlements.
+- Supplier: creates and manages campaigns/pools, monitors aggregated demand, and manages financial lifecycle/compliance states.
+- Platform operator: defines policies, monitors system health, and audits events.
+- Blockchain infrastructure: pool management and tokenization/lifecycle smart contracts.
 
-- `POST /auth/signup-email`
-- `POST /auth/login-email`
-- `POST /auth/signup-google`
-- `POST /auth/login-google`
-- `GET /auth/me`
-- `POST /rwa/merchants/verify`
-- `POST /rwa/pools`
-- `GET /rwa/pools/:poolId`
-- `POST /rwa/commitments`
-- `POST /rwa/orders/aggregate`
-- `POST /rwa/orders/tokenize`
-- `POST /rwa/orders/finance`
-- `POST /rwa/orders/settle`
-- `POST /rwa/orders/repayment`
-- `POST /rwa/orders/bridge`
-- `GET /rwa/orders`
-- `GET /rwa/orders/:orderId`
-- `GET /rwa/status`
-- `GET /rwa/logs?limit=200`
-- `GET /rwa/logs/stream` (SSE)
+## 4) Functional Capabilities
 
-### Environment Variables
+### 4.1 Identity and Access
 
-- `PORT`: HTTP port (default `3000`)
-- `CORS_ORIGIN`: comma-separated allowed origins (optional)
-- `SWAGGER_ENABLED`: enables/disables API docs (default `true`)
-- `SWAGGER_PATH`: docs route path (default `docs`)
-- `JWT_SECRET`: signing key for access tokens
-- `JWT_EXPIRES_IN`: token expiration window (example: `2h`)
-- `GOOGLE_CLIENT_ID`: OAuth client ID used to verify Google ID tokens
-- `FUJI_RPC_URL`: Fuji C-Chain RPC URL (default `https://api.avax-test.network/ext/bc/C/rpc`)
-- `WALLET_ENCRYPTION_KEY`: encryption secret for stored wallet private keys
-- `AUTH_STORAGE`: `memory` or `postgres` (auth persistence mode)
-- `POSTGRES_HOST`: postgres host when `AUTH_STORAGE=postgres`
-- `POSTGRES_PORT`: postgres port
-- `POSTGRES_USER`: postgres username
-- `POSTGRES_PASSWORD`: postgres password
-- `POSTGRES_DB`: postgres database name
-- `DATABASE_URL`: optional postgres connection string (overrides host/port vars)
-- `PERMISSIONED_MERCHANTS`: comma-separated merchant IDs allowed by policy
-- `ORDER_ENCRYPTION_KEY`: encryption secret (hex-64 recommended)
-- `PRIVATE_L1_RPC_URL`: private Avalanche L1 RPC endpoint
-- `PRIVATE_L1_SIGNER_PK`: signer private key for L1 transactions
-- `POOL_MANAGER_CONTRACT`: pool manager contract address
-- `TOKENIZATION_CONTRACT`: tokenization/lifecycle contract address
-- `POOL_MANAGER_ABI_PATH`: ABI file path for pool manager contract
-- `TOKENIZATION_ABI_PATH`: ABI file path for tokenization contract
-- `POOL_MANAGER_ABI_JSON`: optional ABI JSON string override
-- `TOKENIZATION_ABI_JSON`: optional ABI JSON string override
+- Email/password and Google signup/login.
+- JWT for API sessions.
+- Role-based authorization guard.
+- Automatic wallet provisioning per user in backend.
+- Secure private key custody (encrypted, never exposed in frontend).
 
-If L1 RPC or contract configuration is missing, blockchain operations run in mock mode so local orchestration and frontend integration can still proceed.
+### 4.2 Collaborative Procurement
 
-Contract ABI integration architecture is documented in `docs/contract-abi-architecture.md`.
+- Product catalog by vertical/category.
+- Creation of permissioned campaigns/pools.
+- Allowed participant list per pool.
+- Commitment registration per retailer (quantity, price, SKU).
+- Merchant verification before operating in pools.
 
-### Swagger API Docs
+### 4.3 Order Aggregation Engine
 
-- UI: `/docs` (or `/${SWAGGER_PATH}`)
-- OpenAPI JSON: `/${SWAGGER_PATH}-json` (default `/docs-json`)
-- JSON Viewer/Downloader site: `/api-spec`
+- Commitment consolidation by pool.
+- Aggregated metric calculation:
+  - total quantity
+  - weighted unit price
+  - total notional
+  - participating retailers
+- Structured order generation as a financial unit.
 
-### Docker Compose (App + PostgreSQL)
+### 4.4 Tokenization and Financial Lifecycle
 
-Start backend and database:
+- Aggregated order tokenization.
+- On-chain metadata registration:
+  - tx hash
+  - valid explorer URL
+  - event timestamp
+- Lifecycle states:
+  - collecting
+  - structured
+  - tokenized
+  - funded
+  - settled
+  - in_repayment
+  - repaid
+- Bridge preparation support when applicable.
 
-```bash
-docker compose up --build
-```
+### 4.5 Observability and Auditability
 
-Stop containers:
+- Structured business event logging.
+- Aggregated system status endpoint.
+- Role-based order and transaction history.
+- End-to-end traceability: UI <-> API <-> Blockchain.
 
-```bash
-docker compose down
-```
+### 4.6 User Experience
 
-With compose, auth persistence runs on PostgreSQL by default (`AUTH_STORAGE=postgres` in `docker-compose.yml`).
+- Retailer dashboard with full sections:
+  - overview
+  - create pool / execute flow
+  - history
+  - profile (includes public wallet data)
+- Supplier dashboard with full sections:
+  - overview
+  - create pool
+  - history/lifecycle
+  - profile (includes public wallet data)
+- Wallet information is not shown in login; only in profile.
 
-### Render Deployment (Web Service + Managed PostgreSQL)
+## 5) Technical Architecture
 
-This repository includes a Render Blueprint at `render.yaml`.
+## 5.1 Frontend (aleph-front)
 
-Deploy flow:
+- Next.js App Router + TypeScript.
+- Generated OpenAPI client for strong typing.
+- Role-based views with direct backend API consumption.
+- tx hash and explorer link rendering with safe validation/fallback.
 
-1. Push this repo to GitHub.
-2. In Render, choose **New +** -> **Blueprint**.
-3. Select the repository and apply the blueprint.
+## 5.2 Backend (aleph-back)
 
-The blueprint creates:
+- NestJS modular:
+  - auth
+  - rwa
+  - agent
+- Domain services for:
+  - merchant verification
+  - payload encryption
+  - procurement/lifecycle orchestration
+  - L1 contract integration
+- Swagger/OpenAPI for integration and API governance.
 
-- web service `aleph-back` (Docker runtime)
-- managed Postgres database `aleph-db`
-- `DATABASE_URL` injected from the database
+## 5.3 Blockchain
 
-Important notes:
+- Dedicated contracts:
+  - Pool Manager
+  - Tokenization / Lifecycle
+- Execution of transactions signed by an authorized backend signer.
+- Fuji compatibility for testing and target network by deployment environment.
 
-- `docker-compose.yml` is for local development only.
-- The hostname `db` works inside local Docker Compose, but not on Render web services.
-- On Render, always use `DATABASE_URL` (or `PG*`/`POSTGRES_*` variables) from Render environment settings.
+## 6) End-to-End Operational Flow
 
-If you deploy manually without Blueprint, set at least:
+1. User signs up/logs in.
+2. Backend creates/loads profile and public wallet.
+3. Supplier defines a campaign and creates a permissioned pool.
+4. Verified retailers submit commitments.
+5. System aggregates commitments and structures the order.
+6. Order is tokenized on-chain.
+7. Financing/settlement/repayment events are registered.
+8. Dashboards display status, history, and verifiable transactions.
 
-- `NODE_ENV=production`
-- `AUTH_STORAGE=postgres`
-- `DATABASE_URL=<Render Postgres connection string>`
-- `PGSSLMODE=require`
+## 7) Security and Compliance
 
-## Project setup
+- Backend private key encryption.
+- Sensitive material is never exposed in frontend.
+- Strict CORS by allowed domains.
+- Environment separation (local, staging, prod).
+- Blockchain config validation to prevent execution on invalid endpoints.
+- Operational traceability and auditability.
 
-```bash
-$ pnpm install
-```
+## 8) Environments and Deployment
 
-## Compile and run the project
+### 8.1 Base Configuration
 
-```bash
-# development
-$ pnpm run start
+- Backend: see `aleph-back/.env.fuji.example`.
+- Frontend: see `aleph-front/.env.example`.
 
-# watch mode
-$ pnpm run start:dev
+### 8.2 Critical Production Variables
 
-# production mode
-$ pnpm run start:prod
-```
+- `PRIVATE_L1_RPC_URL`
+- `PRIVATE_L1_SIGNER_PK`
+- `POOL_MANAGER_CONTRACT`
+- `TOKENIZATION_CONTRACT`
+- `PRIVATE_L1_EXPLORER_TX_BASE_URL`
+- `CORS_ORIGIN` (final frontend domains)
+- `GOOGLE_CLIENT_ID` (if Google login is enabled)
 
-## Run tests
+### 8.3 Final Operational Readiness Criteria
 
-```bash
-# unit tests
-$ pnpm run test
+The system is considered final and fully functional when:
 
-# e2e tests
-$ pnpm run test:e2e
+- Auth and role-based profiles run in production.
+- Pool, commitments, aggregate, and tokenize flows execute on real on-chain infrastructure.
+- History and lifecycle states remain consistent between API and blockchain.
+- Explorer links are valid and verifiable.
+- Monitoring and alerts cover key operational failures.
 
-# test coverage
-$ pnpm run test:cov
-```
+## 9) Repository Structure
 
-## Deployment
+- `aleph-back`: API, domain logic, contracts, and technical docs.
+- `aleph-front`: web experience for retailers and suppliers.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## 10) Evolution Roadmap (Post Go-Live)
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+- Risk engine and scoring for dynamic financing.
+- Integration with more liquidity providers.
+- Advanced compliance/KYC rules by jurisdiction.
+- Predictive demand and pricing analytics.
+- ERP/POS integrations for automated data ingestion.
 
-```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
-```
+---
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+For implementation details by module:
 
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- Backend: `aleph-back/README.md`
+- Frontend: `aleph-front/README.md`
+- ABI/contracts architecture: `aleph-back/docs/contract-abi-architecture.md`
