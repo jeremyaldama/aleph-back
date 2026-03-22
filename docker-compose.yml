@@ -46,8 +46,14 @@ services:
       PRIVATE_L1_SIGNER_PK: ''
       POOL_MANAGER_CONTRACT: ''
       TOKENIZATION_CONTRACT: ''
+      POOL_MANAGER_ABI_PATH: /app/abis/pool-manager.abi.json
+      TOKENIZATION_ABI_PATH: /app/abis/tokenization.abi.json
+      # POOL_MANAGER_ABI_JSON: '["function ..."]'
+      # TOKENIZATION_ABI_JSON: '["function ..."]'
     ports:
       - '3000:3000'
+    volumes:
+      - ./abis:/app/abis:ro
 
 volumes:
   pgdata:

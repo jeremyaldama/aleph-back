@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { Contract, JsonRpcProvider, Wallet } from 'ethers';
 import { randomBytes } from 'crypto';
+import { existsSync, readFileSync } from 'fs';
 
-const POOL_MANAGER_ABI = [
+const DEFAULT_POOL_MANAGER_ABI = [
   'function createPool(string name, address[] participants) returns (bytes32 poolId)',
   'function settlePool(bytes32 orderId, string conditionRef) returns (bool)',
 ];
 
-const TOKENIZATION_ABI = [
+const DEFAULT_TOKENIZATION_ABI = [
   'function tokenizeOrder(bytes32 orderId, uint256 totalNotional) returns (uint256 entitlementTokenId, uint256 repaymentTokenId)',
   'function prepareBridge(bytes32 orderId, string targetNetwork, string bridgeAssetId) returns (bool)',
   'function recordRepayment(bytes32 orderId, uint256 amount) returns (bool)',
@@ -137,18 +138,76 @@ export class PrivateL1ContractsService {
 
     const provider = new JsonRpcProvider(rpcUrl);
     const wallet = new Wallet(privateKey, provider);
+    const poolManagerAbi = this.resolveAbi({
+      abiJsonEnv: 'POOL_MANAGER_ABI_JSON',
+      abiPathEnv: 'POOL_MANAGER_ABI_PATH',
+      defaultAbi: DEFAULT_POOL_MANAGER_ABI,
+    });
+    const tokenizationAbi = this.resolveAbi({
+      abiJsonEnv: 'TOKENIZATION_ABI_JSON',
+      abiPathEnv: 'TOKENIZATION_ABI_PATH',
+      defaultAbi: DEFAULT_TOKENIZATION_ABI,
+    });
+
     const poolManager = new Contract(
       poolManagerAddress,
-      POOL_MANAGER_ABI,
+      poolManagerAbi,
       wallet,
     );
     const tokenization = new Contract(
       tokenizationAddress,
-      TOKENIZATION_ABI,
+      tokenizationAbi,
       wallet,
     );
 
     return livePath(poolManager, tokenization);
+  }
+
+  private resolveAbi(input: {
+    abiJsonEnv: string;
+    abiPathEnv: string;
+    defaultAbi: string[];
+  }): string[] {
+    const rawJson = process.env[input.abiJsonEnv]?.trim();
+    if (rawJson) {
+      try {
+        const parsed = JSON.parse(rawJson) as unknown;
+        if (this.isAbiStringArray(parsed)) {
+          return parsed;
+        }
+
+        if (Array.isArray(parsed)) {
+          return parsed as unknown as string[];
+        }
+      } catch {
+        // Fall through to file/default fallback.
+      }
+    }
+
+    const abiPath = process.env[input.abiPathEnv]?.trim();
+    if (abiPath && existsSync(abiPath)) {
+      try {
+        const file = readFileSync(abiPath, 'utf8');
+        const parsed = JSON.parse(file) as unknown;
+        if (this.isAbiStringArray(parsed)) {
+          return parsed;
+        }
+
+        if (Array.isArray(parsed)) {
+          return parsed as unknown as string[];
+        }
+      } catch {
+        // Fall through to default fallback.
+      }
+    }
+
+    return input.defaultAbi;
+  }
+
+  private isAbiStringArray(value: unknown): value is string[] {
+    return (
+      Array.isArray(value) && value.every((item) => typeof item === 'string')
+    );
   }
 
   private asBytes32(value: string): string {

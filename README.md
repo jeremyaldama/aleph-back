@@ -85,13 +85,20 @@ Core workflow:
 - `PRIVATE_L1_SIGNER_PK`: signer private key for L1 transactions
 - `POOL_MANAGER_CONTRACT`: pool manager contract address
 - `TOKENIZATION_CONTRACT`: tokenization/lifecycle contract address
+- `POOL_MANAGER_ABI_PATH`: ABI file path for pool manager contract
+- `TOKENIZATION_ABI_PATH`: ABI file path for tokenization contract
+- `POOL_MANAGER_ABI_JSON`: optional ABI JSON string override
+- `TOKENIZATION_ABI_JSON`: optional ABI JSON string override
 
 If L1 RPC or contract configuration is missing, blockchain operations run in mock mode so local orchestration and frontend integration can still proceed.
+
+Contract ABI integration architecture is documented in `docs/contract-abi-architecture.md`.
 
 ### Swagger API Docs
 
 - UI: `/docs` (or `/${SWAGGER_PATH}`)
-- OpenAPI JSON: `/docs-json`
+- OpenAPI JSON: `/${SWAGGER_PATH}-json` (default `/docs-json`)
+- JSON Viewer/Downloader site: `/api-spec`
 
 ### Docker Compose (App + PostgreSQL)
 

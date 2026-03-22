@@ -1,0 +1,5 @@
+[
+  "function tokenizeOrder(bytes32 orderId, uint256 totalNotional) returns (uint256 entitlementTokenId, uint256 repaymentTokenId)",
+  "function prepareBridge(bytes32 orderId, string targetNetwork, string bridgeAssetId) returns (bool)",
+  "function recordRepayment(bytes32 orderId, uint256 amount) returns (bool)"
+]
