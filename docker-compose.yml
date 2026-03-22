@@ -1,0 +1,53 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: aleph-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: aleph
+      POSTGRES_PASSWORD: aleph
+      POSTGRES_DB: aleph_auth
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U aleph -d aleph_auth']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aleph-back
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: 3000
+      CORS_ORIGIN: http://localhost:5173,http://localhost:3000
+      SWAGGER_ENABLED: 'true'
+      SWAGGER_PATH: docs
+      JWT_SECRET: change-this-in-production
+      JWT_EXPIRES_IN: 2h
+      GOOGLE_CLIENT_ID: ''
+      FUJI_RPC_URL: https://api.avax-test.network/ext/bc/C/rpc
+      WALLET_ENCRYPTION_KEY: abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd
+      AUTH_STORAGE: postgres
+      DATABASE_URL: postgresql://aleph:aleph@db:5432/aleph_auth
+      PERMISSIONED_MERCHANTS: merchant-001,merchant-002,merchant-003
+      ORDER_ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+      PRIVATE_L1_RPC_URL: http://127.0.0.1:9650/ext/bc/chain-id/rpc
+      PRIVATE_L1_SIGNER_PK: ''
+      POOL_MANAGER_CONTRACT: ''
+      TOKENIZATION_CONTRACT: ''
+    ports:
+      - '3000:3000'
+
+volumes:
+  pgdata:

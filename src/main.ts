@@ -17,7 +17,9 @@ async function bootstrap() {
         'Backend API for permissioned procurement pools, aggregated order tokenization, financing lifecycle, and bridge preparation on Avalanche L1.',
       )
       .setVersion('1.0.0')
+      .addBearerAuth()
       .addTag('rwa')
+      .addTag('auth')
       .build();
 
     const document = SwaggerModule.createDocument(app, config);

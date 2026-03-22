@@ -40,6 +40,11 @@ Core workflow:
 
 ### API Endpoints
 
+- `POST /auth/signup-email`
+- `POST /auth/login-email`
+- `POST /auth/signup-google`
+- `POST /auth/login-google`
+- `GET /auth/me`
 - `POST /rwa/merchants/verify`
 - `POST /rwa/pools`
 - `GET /rwa/pools/:poolId`
@@ -62,6 +67,18 @@ Core workflow:
 - `CORS_ORIGIN`: comma-separated allowed origins (optional)
 - `SWAGGER_ENABLED`: enables/disables API docs (default `true`)
 - `SWAGGER_PATH`: docs route path (default `docs`)
+- `JWT_SECRET`: signing key for access tokens
+- `JWT_EXPIRES_IN`: token expiration window (example: `2h`)
+- `GOOGLE_CLIENT_ID`: OAuth client ID used to verify Google ID tokens
+- `FUJI_RPC_URL`: Fuji C-Chain RPC URL (default `https://api.avax-test.network/ext/bc/C/rpc`)
+- `WALLET_ENCRYPTION_KEY`: encryption secret for stored wallet private keys
+- `AUTH_STORAGE`: `memory` or `postgres` (auth persistence mode)
+- `POSTGRES_HOST`: postgres host when `AUTH_STORAGE=postgres`
+- `POSTGRES_PORT`: postgres port
+- `POSTGRES_USER`: postgres username
+- `POSTGRES_PASSWORD`: postgres password
+- `POSTGRES_DB`: postgres database name
+- `DATABASE_URL`: optional postgres connection string (overrides host/port vars)
 - `PERMISSIONED_MERCHANTS`: comma-separated merchant IDs allowed by policy
 - `ORDER_ENCRYPTION_KEY`: encryption secret (hex-64 recommended)
 - `PRIVATE_L1_RPC_URL`: private Avalanche L1 RPC endpoint
@@ -75,6 +92,22 @@ If L1 RPC or contract configuration is missing, blockchain operations run in moc
 
 - UI: `/docs` (or `/${SWAGGER_PATH}`)
 - OpenAPI JSON: `/docs-json`
+
+### Docker Compose (App + PostgreSQL)
+
+Start backend and database:
+
+```bash
+docker compose up --build
+```
+
+Stop containers:
+
+```bash
+docker compose down
+```
+
+With compose, auth persistence runs on PostgreSQL by default (`AUTH_STORAGE=postgres` in `docker-compose.yml`).
 
 ## Project setup
 
