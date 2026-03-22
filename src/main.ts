@@ -2,6 +2,13 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
+function normalizeOrigin(origin: string): string {
+  return origin
+    .trim()
+    .replace(/^['"]|['"]$/g, '')
+    .replace(/\/$/, '');
+}
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
@@ -9,8 +16,20 @@ async function bootstrap() {
     .map((origin) => origin.trim())
     .filter((origin) => origin.length > 0);
 
+  const normalizedOrigins = allowedOrigins?.map(normalizeOrigin) ?? [];
+
   app.enableCors({
-    origin: allowedOrigins?.length ? allowedOrigins : true,
+    origin: (origin, callback) => {
+      if (!origin || normalizedOrigins.length === 0) {
+        callback(null, true);
+        return;
+      }
+
+      const normalizedRequestOrigin = normalizeOrigin(origin);
+      const isAllowed = normalizedOrigins.includes(normalizedRequestOrigin);
+
+      callback(isAllowed ? null : new Error('Not allowed by CORS'), isAllowed);
+    },
     credentials: true,
   });
 
