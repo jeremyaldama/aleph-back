@@ -175,11 +175,24 @@ export class AuthStoreService implements OnModuleInit, OnModuleDestroy {
     const password = process.env.POSTGRES_PASSWORD ?? process.env.PGPASSWORD;
     const database = process.env.POSTGRES_DB ?? process.env.PGDATABASE;
 
+    const urlHost = this.readConnectionStringHost(connectionString);
+    const effectiveHost = connectionString ? urlHost : (host ?? 'missing');
+    const source = connectionString ? 'DATABASE_URL' : 'host/port variables';
+
     this.logger.log(
-      `Postgres config source: DATABASE_URL=${connectionString ? 'set' : 'missing'}, host=${host ?? 'missing'}, port=${port}, user=${user ? 'set' : 'missing'}, database=${database ?? 'missing'}`,
+      `Postgres config source: ${source}, DATABASE_URL=${connectionString ? 'set' : 'missing'}, effectiveHost=${effectiveHost}, port=${port}, user=${user ? 'set' : 'missing'}, database=${database ?? 'missing'}`,
     );
 
     if (connectionString) {
+      if (
+        process.env.NODE_ENV === 'production' &&
+        ['localhost', '127.0.0.1', '::1'].includes(urlHost)
+      ) {
+        throw new Error(
+          `DATABASE_URL points to local host (${urlHost}) in production. Use your Render Postgres internal connection string.`,
+        );
+      }
+
       return {
         connectionString,
         ssl: sslEnabled ? { rejectUnauthorized: false } : undefined,
@@ -215,5 +228,17 @@ export class AuthStoreService implements OnModuleInit, OnModuleDestroy {
       mode === 'prefer' ||
       process.env.NODE_ENV === 'production'
     );
+  }
+
+  private readConnectionStringHost(connectionString?: string): string {
+    if (!connectionString) {
+      return 'missing';
+    }
+
+    try {
+      return new URL(connectionString).hostname || 'missing';
+    } catch {
+      return 'invalid-url';
+    }
   }
 }
