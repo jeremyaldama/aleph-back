@@ -60,6 +60,8 @@ Core workflow:
 
 - `PORT`: HTTP port (default `3000`)
 - `CORS_ORIGIN`: comma-separated allowed origins (optional)
+- `SWAGGER_ENABLED`: enables/disables API docs (default `true`)
+- `SWAGGER_PATH`: docs route path (default `docs`)
 - `PERMISSIONED_MERCHANTS`: comma-separated merchant IDs allowed by policy
 - `ORDER_ENCRYPTION_KEY`: encryption secret (hex-64 recommended)
 - `PRIVATE_L1_RPC_URL`: private Avalanche L1 RPC endpoint
@@ -68,6 +70,11 @@ Core workflow:
 - `TOKENIZATION_CONTRACT`: tokenization/lifecycle contract address
 
 If L1 RPC or contract configuration is missing, blockchain operations run in mock mode so local orchestration and frontend integration can still proceed.
+
+### Swagger API Docs
+
+- UI: `/docs` (or `/${SWAGGER_PATH}`)
+- OpenAPI JSON: `/docs-json`
 
 ## Project setup
 
