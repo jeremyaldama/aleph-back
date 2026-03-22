@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
@@ -10,13 +11,26 @@ function normalizeOrigin(origin: string): string {
 }
 
 async function bootstrap() {
+  const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
 
-  const allowedOrigins = process.env.CORS_ORIGIN?.split(',')
+  const configuredOrigins = process.env.CORS_ORIGIN?.split(',')
     .map((origin) => origin.trim())
     .filter((origin) => origin.length > 0);
 
-  const normalizedOrigins = allowedOrigins?.map(normalizeOrigin) ?? [];
+  const baselineOrigins = [
+    'https://aleph-front.vercel.app',
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://localhost:3001',
+  ];
+
+  const normalizedOrigins = Array.from(
+    new Set([
+      ...baselineOrigins.map(normalizeOrigin),
+      ...(configuredOrigins?.map(normalizeOrigin) ?? []),
+    ]),
+  );
 
   app.enableCors({
     origin: (origin, callback) => {
@@ -32,6 +46,8 @@ async function bootstrap() {
     },
     credentials: true,
   });
+
+  logger.log(`CORS allowed origins: ${normalizedOrigins.join(', ')}`);
 
   const swaggerEnabled = process.env.SWAGGER_ENABLED !== 'false';
   if (swaggerEnabled) {
