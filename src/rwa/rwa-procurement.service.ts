@@ -1,15 +1,21 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { map, Observable } from 'rxjs';
 import { MerchantVerificationService } from './merchant-verification.service';
 import { OrderEncryptionService } from './order-encryption.service';
 import { PrivateL1ContractsService } from './private-l1-contracts.service';
 import { RwaLogService } from './rwa-log.service';
+import type { UserRole } from '../auth/auth.types';
 import type {
   AggregatedOrder,
   MerchantOrderCommitment,
   MerchantProfile,
   PurchasePool,
   RepaymentRecord,
+  RetailerDashboardProducts,
   RwaLifecycleStatus,
   RwaLogEntry,
 } from './rwa.types';
@@ -38,6 +44,87 @@ export class RwaProcurementService {
     private readonly contractsService: PrivateL1ContractsService,
     private readonly logService: RwaLogService,
   ) {}
+
+  getRetailerDashboardProducts(
+    retailerId: string,
+    role: UserRole,
+  ): RetailerDashboardProducts {
+    if (role !== 'retailer') {
+      throw new ForbiddenException(
+        'Only retailer accounts can access retailer dashboard products',
+      );
+    }
+
+    const now = new Date().toISOString();
+    const products = [
+      {
+        sku: 'cooking-oil-5l',
+        name: 'Cooking Oil 5L',
+        category: 'Essential Groceries',
+        supplierName: 'Andes Wholesale Supply',
+        unit: 'container',
+        unitPrice: 18.75,
+        minimumOrderQuantity: 20,
+        availableQuantity: 1400,
+        imageUrl: 'https://images.example.com/products/cooking-oil-5l.png',
+        tags: ['high-turnover', 'price-protected'],
+        updatedAt: now,
+      },
+      {
+        sku: 'rice-25kg-premium',
+        name: 'Premium Rice 25kg',
+        category: 'Dry Goods',
+        supplierName: 'Pacific Grain Partners',
+        unit: 'bag',
+        unitPrice: 27.4,
+        minimumOrderQuantity: 12,
+        availableQuantity: 920,
+        imageUrl: 'https://images.example.com/products/rice-25kg-premium.png',
+        tags: ['bulk-discount', 'stable-demand'],
+        updatedAt: now,
+      },
+      {
+        sku: 'sugar-50kg',
+        name: 'Refined Sugar 50kg',
+        category: 'Dry Goods',
+        supplierName: 'Sierra Food Distributors',
+        unit: 'sack',
+        unitPrice: 34.1,
+        minimumOrderQuantity: 10,
+        availableQuantity: 600,
+        imageUrl: 'https://images.example.com/products/sugar-50kg.png',
+        tags: ['seasonal', 'margin-sensitive'],
+        updatedAt: now,
+      },
+      {
+        sku: 'milk-uht-1l-box',
+        name: 'UHT Milk 1L (Box of 12)',
+        category: 'Dairy & Beverages',
+        supplierName: 'Valle Cold Chain',
+        unit: 'box',
+        unitPrice: 13.95,
+        minimumOrderQuantity: 15,
+        availableQuantity: 1180,
+        imageUrl: 'https://images.example.com/products/milk-uht-1l-box.png',
+        tags: ['fast-moving', 'weekly-restock'],
+        updatedAt: now,
+      },
+    ];
+
+    this.logService.emit('info', 'retailer.dashboard.products.viewed', {
+      retailerId,
+      products: products.length,
+      mocked: true,
+    });
+
+    return {
+      retailerId,
+      currency: 'USD',
+      products,
+      generatedAt: now,
+      mocked: true,
+    };
+  }
 
   async createPool(dto: CreatePoolDto): Promise<PurchasePool> {
     const poolId = this.makeId('pool');

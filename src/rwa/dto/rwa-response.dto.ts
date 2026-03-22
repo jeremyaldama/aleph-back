@@ -256,6 +256,63 @@ export class RwaLifecycleStatusResponseDto {
   repaidOrders!: number;
 }
 
+export class RetailerDashboardProductResponseDto {
+  @ApiProperty({ example: 'cooking-oil-5l' })
+  sku!: string;
+
+  @ApiProperty({ example: 'Cooking Oil 5L' })
+  name!: string;
+
+  @ApiProperty({ example: 'Essential Groceries' })
+  category!: string;
+
+  @ApiProperty({ example: 'Andes Wholesale Supply' })
+  supplierName!: string;
+
+  @ApiProperty({ example: 'container' })
+  unit!: string;
+
+  @ApiProperty({ example: 18.75 })
+  unitPrice!: number;
+
+  @ApiProperty({ example: 20 })
+  minimumOrderQuantity!: number;
+
+  @ApiProperty({ example: 1400 })
+  availableQuantity!: number;
+
+  @ApiProperty({
+    example: 'https://images.example.com/products/cooking-oil-5l.png',
+  })
+  imageUrl!: string;
+
+  @ApiProperty({
+    type: [String],
+    example: ['high-turnover', 'price-protected'],
+  })
+  tags!: string[];
+
+  @ApiProperty({ example: '2026-03-22T11:35:00.000Z' })
+  updatedAt!: string;
+}
+
+export class RetailerDashboardProductsResponseDto {
+  @ApiProperty({ example: 'usr-4f9b4n2z' })
+  retailerId!: string;
+
+  @ApiProperty({ example: 'USD' })
+  currency!: string;
+
+  @ApiProperty({ type: () => [RetailerDashboardProductResponseDto] })
+  products!: RetailerDashboardProductResponseDto[];
+
+  @ApiProperty({ example: '2026-03-22T11:35:02.000Z' })
+  generatedAt!: string;
+
+  @ApiProperty({ example: true })
+  mocked!: true;
+}
+
 export class RwaLogEntryResponseDto {
   @ApiProperty({ example: '1711034077842-yg91n4wz' })
   id!: string;

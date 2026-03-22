@@ -105,6 +105,28 @@ export interface RwaLifecycleStatus {
   repaidOrders: number;
 }
 
+export interface RetailerDashboardProduct {
+  sku: string;
+  name: string;
+  category: string;
+  supplierName: string;
+  unit: string;
+  unitPrice: number;
+  minimumOrderQuantity: number;
+  availableQuantity: number;
+  imageUrl: string;
+  tags: string[];
+  updatedAt: string;
+}
+
+export interface RetailerDashboardProducts {
+  retailerId: string;
+  currency: string;
+  products: RetailerDashboardProduct[];
+  generatedAt: string;
+  mocked: true;
+}
+
 export type RwaLogLevel = 'info' | 'warn' | 'error';
 
 export interface RwaLogEntry {

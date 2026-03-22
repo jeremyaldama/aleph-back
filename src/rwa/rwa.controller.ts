@@ -7,8 +7,10 @@ import {
   Post,
   Query,
   Sse,
+  UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiOkResponse,
   ApiOperation,
@@ -33,15 +35,20 @@ import {
   MerchantOrderCommitmentResponseDto,
   MerchantProfileResponseDto,
   PurchasePoolResponseDto,
+  RetailerDashboardProductsResponseDto,
   RwaLifecycleStatusResponseDto,
   RwaLogEntryResponseDto,
 } from './dto/rwa-response.dto';
 import { RwaProcurementService } from './rwa-procurement.service';
+import { AuthGuard } from '../auth/auth.guard';
+import { CurrentUserId, CurrentUserRole } from '../auth/current-user.decorator';
+import type { UserRole } from '../auth/auth.types';
 import type {
   AggregatedOrder,
   MerchantOrderCommitment,
   MerchantProfile,
   PurchasePool,
+  RetailerDashboardProducts,
   RwaLifecycleStatus,
 } from './rwa.types';
 
@@ -49,6 +56,22 @@ import type {
 @Controller('rwa')
 export class RwaController {
   constructor(private readonly rwaService: RwaProcurementService) {}
+
+  @Get('retailer/products')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Retailer dashboard first page: list products (mocked)',
+    description:
+      'Core userflow: after retailer login/signup, call this endpoint to render the first dashboard page with products available to the retailer. Data is mocked for now.',
+  })
+  @ApiOkResponse({ type: RetailerDashboardProductsResponseDto })
+  getRetailerDashboardProducts(
+    @CurrentUserId() userId: string,
+    @CurrentUserRole() role: UserRole,
+  ): RetailerDashboardProducts {
+    return this.rwaService.getRetailerDashboardProducts(userId, role);
+  }
 
   @Post('merchants/verify')
   @ApiOperation({
