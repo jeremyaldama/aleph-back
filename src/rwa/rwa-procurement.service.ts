@@ -176,7 +176,24 @@ export class RwaProcurementService {
 
   commitOrder(dto: CommitOrderDto): MerchantOrderCommitment {
     const pool = this.mustPool(dto.poolId);
-    const merchant = this.mustMerchant(dto.merchantId);
+    if (!dto.merchantId) {
+      throw new Error('merchantId is required for commitment submissions');
+    }
+
+    let merchant = this.merchants.get(dto.merchantId);
+    if (!merchant) {
+      merchant = this.merchantVerificationService.verify(
+        dto.merchantId,
+        `Merchant ${dto.merchantId}`,
+        'UNSPECIFIED',
+        { source: 'auto-bootstrap-on-commit' },
+      );
+      this.merchants.set(merchant.merchantId, merchant);
+      this.logService.emit('info', 'merchant.auto_bootstrapped', {
+        merchantId: merchant.merchantId,
+        status: merchant.status,
+      });
+    }
 
     if (merchant.status !== 'verified') {
       throw new Error(`Merchant ${merchant.merchantId} is not verified`);

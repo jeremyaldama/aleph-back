@@ -38,8 +38,12 @@ export class CommitOrderDto {
   @ApiProperty({ example: 'pool-1711032191000-q9s9p2mz' })
   poolId!: string;
 
-  @ApiProperty({ example: 'merchant-001' })
-  merchantId!: string;
+  @ApiPropertyOptional({
+    example: 'merchant-001',
+    description:
+      'Optional merchant ID override. If omitted, backend uses authenticated user id.',
+  })
+  merchantId?: string;
 
   @ApiProperty({ example: 'cooking-oil-5l' })
   sku!: string;

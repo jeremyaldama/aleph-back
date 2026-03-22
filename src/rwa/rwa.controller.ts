@@ -101,13 +101,23 @@ export class RwaController {
   }
 
   @Post('commitments')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Commit encrypted merchant order details into a pool',
+    description:
+      'Authenticated retailer flow. If merchantId is omitted, backend uses the current user id from bearer token.',
   })
   @ApiBody({ type: CommitOrderDto })
   @ApiOkResponse({ type: MerchantOrderCommitmentResponseDto })
-  commitOrder(@Body() dto: CommitOrderDto): MerchantOrderCommitment {
-    return this.rwaService.commitOrder(dto);
+  commitOrder(
+    @Body() dto: CommitOrderDto,
+    @CurrentUserId() userId: string,
+  ): MerchantOrderCommitment {
+    return this.rwaService.commitOrder({
+      ...dto,
+      merchantId: dto.merchantId ?? userId,
+    });
   }
 
   @Post('orders/aggregate')
