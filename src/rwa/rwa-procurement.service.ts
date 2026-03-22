@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -15,6 +16,7 @@ import type {
   MerchantProfile,
   PurchasePool,
   RepaymentRecord,
+  PoolProgress,
   RetailerDashboardProducts,
   RwaLifecycleStatus,
   RwaLogEntry,
@@ -26,6 +28,7 @@ import type {
   FinanceOrderDto,
   PrepareBridgeDto,
   RecordRepaymentDto,
+  SeedMockCommitmentsDto,
   TokenizeOrderDto,
   TriggerSettlementDto,
   VerifyMerchantDto,
@@ -136,6 +139,7 @@ export class RwaProcurementService {
     const pool: PurchasePool = {
       poolId,
       name: dto.name,
+      thresholdQuantity: dto.thresholdQuantity ?? 1,
       permissioned: true,
       allowedMerchants: dto.allowedMerchants,
       createdAt: new Date().toISOString(),
@@ -238,12 +242,24 @@ export class RwaProcurementService {
 
   aggregateDemand(dto: AggregateOrderDto): AggregatedOrder {
     const pool = this.mustPool(dto.poolId);
+    const progress = this.getPoolProgress(dto.poolId);
     const poolCommitments = Array.from(this.commitments.values()).filter(
       (commitment) => commitment.poolId === dto.poolId,
     );
 
     if (!poolCommitments.length) {
       throw new Error(`No commitments found for pool ${dto.poolId}`);
+    }
+
+    if (!progress.canAggregate) {
+      throw new BadRequestException({
+        code: 'threshold_not_met',
+        message: `Pool ${dto.poolId} has not met minimum quantity threshold`,
+        poolId: dto.poolId,
+        thresholdQuantity: progress.thresholdQuantity,
+        committedQuantity: progress.committedQuantity,
+        missingQuantity: progress.missingQuantity,
+      });
     }
 
     const totalQuantity = poolCommitments.reduce(
@@ -276,9 +292,81 @@ export class RwaProcurementService {
       orderId: order.orderId,
       poolId: order.poolId,
       totalNotional: order.totalNotional,
+      thresholdQuantity: pool.thresholdQuantity,
     });
 
     return order;
+  }
+
+  getPoolProgress(poolId: string): PoolProgress {
+    const pool = this.mustPool(poolId);
+    const poolCommitments = Array.from(this.commitments.values()).filter(
+      (commitment) => commitment.poolId === poolId,
+    );
+    const committedQuantity = poolCommitments.reduce(
+      (sum, commitment) => sum + commitment.quantity,
+      0,
+    );
+    const participatingMerchants = new Set(
+      poolCommitments.map((commitment) => commitment.merchantId),
+    ).size;
+    const missingQuantity = Math.max(
+      0,
+      pool.thresholdQuantity - committedQuantity,
+    );
+
+    return {
+      poolId,
+      thresholdQuantity: pool.thresholdQuantity,
+      committedQuantity,
+      participatingMerchants,
+      canAggregate: committedQuantity >= pool.thresholdQuantity,
+      missingQuantity,
+    };
+  }
+
+  seedMockCommitmentsForPool(
+    poolId: string,
+    dto: SeedMockCommitmentsDto,
+  ): MerchantOrderCommitment[] {
+    if (process.env.NODE_ENV === 'production') {
+      throw new ForbiddenException(
+        'Mock commitment seeding is disabled in production',
+      );
+    }
+
+    const pool = this.mustPool(poolId);
+    const merchantIds = dto.merchantIds?.length
+      ? dto.merchantIds
+      : pool.allowedMerchants;
+
+    if (!merchantIds.length) {
+      throw new BadRequestException(
+        'No merchants available to seed commitments',
+      );
+    }
+
+    const quantity = dto.quantity ?? 120;
+    const unitPrice = dto.unitPrice ?? 18.5;
+    const seeded = merchantIds.map((merchantId, index) =>
+      this.commitOrder({
+        poolId,
+        merchantId,
+        sku: `seeded-sku-${index + 1}`,
+        quantity,
+        unitPrice,
+        notes: 'generated-by-dev-seed-endpoint',
+      }),
+    );
+
+    this.logService.emit('warn', 'pool.commitments.seeded.mock', {
+      poolId,
+      commitments: seeded.length,
+      quantity,
+      unitPrice,
+    });
+
+    return seeded;
   }
 
   async tokenize(dto: TokenizeOrderDto): Promise<AggregatedOrder> {

@@ -26,6 +26,7 @@ import {
   FinanceOrderDto,
   PrepareBridgeDto,
   RecordRepaymentDto,
+  SeedMockCommitmentsDto,
   TokenizeOrderDto,
   TriggerSettlementDto,
   VerifyMerchantDto,
@@ -34,6 +35,7 @@ import {
   AggregatedOrderResponseDto,
   MerchantOrderCommitmentResponseDto,
   MerchantProfileResponseDto,
+  PoolProgressResponseDto,
   PurchasePoolResponseDto,
   RetailerDashboardProductsResponseDto,
   RwaLifecycleStatusResponseDto,
@@ -47,6 +49,7 @@ import type {
   AggregatedOrder,
   MerchantOrderCommitment,
   MerchantProfile,
+  PoolProgress,
   PurchasePool,
   RetailerDashboardProducts,
   RwaLifecycleStatus,
@@ -98,6 +101,30 @@ export class RwaController {
   @ApiOkResponse({ type: PurchasePoolResponseDto })
   getPool(@Param('poolId') poolId: string): PurchasePool {
     return this.rwaService.getPool(poolId);
+  }
+
+  @Get('pools/:poolId/progress')
+  @ApiOperation({
+    summary: 'Get pool commitment progress against aggregation threshold',
+  })
+  @ApiOkResponse({ type: PoolProgressResponseDto })
+  getPoolProgress(@Param('poolId') poolId: string): PoolProgress {
+    return this.rwaService.getPoolProgress(poolId);
+  }
+
+  @Post('dev/pools/:poolId/mock-commitments')
+  @ApiOperation({
+    summary: 'Dev-only: seed one mock commitment per merchant for a pool',
+    description:
+      'Non-production helper endpoint to rapidly create realistic commitment volume for demos and UI testing.',
+  })
+  @ApiBody({ type: SeedMockCommitmentsDto, required: false })
+  @ApiOkResponse({ type: MerchantOrderCommitmentResponseDto, isArray: true })
+  seedMockCommitments(
+    @Param('poolId') poolId: string,
+    @Body() dto: SeedMockCommitmentsDto = {},
+  ): MerchantOrderCommitment[] {
+    return this.rwaService.seedMockCommitmentsForPool(poolId, dto);
   }
 
   @Post('commitments')
