@@ -9,6 +9,13 @@ export class CreatePoolDto {
   @ApiProperty({ example: 'North Zone Q2 Procurement Pool' })
   name!: string;
 
+  @ApiPropertyOptional({
+    example: 500,
+    description:
+      'Minimum aggregated quantity required before the pool can be aggregated into an order',
+  })
+  thresholdQuantity?: number;
+
   @ApiProperty({
     type: [String],
     example: ['merchant-001', 'merchant-002'],
@@ -61,6 +68,28 @@ export class CommitOrderDto {
 export class AggregateOrderDto {
   @ApiProperty({ example: 'pool-1711032191000-q9s9p2mz' })
   poolId!: string;
+}
+
+export class SeedMockCommitmentsDto {
+  @ApiPropertyOptional({
+    type: [String],
+    example: ['merchant-201', 'merchant-309', 'merchant-441'],
+    description:
+      'Merchant IDs to generate one mock commitment each. Defaults to pool participants when omitted.',
+  })
+  merchantIds?: string[];
+
+  @ApiPropertyOptional({
+    example: 120,
+    description: 'Quantity assigned to each generated commitment',
+  })
+  quantity?: number;
+
+  @ApiPropertyOptional({
+    example: 18.5,
+    description: 'Unit price assigned to each generated commitment',
+  })
+  unitPrice?: number;
 }
 
 export class TokenizeOrderDto {

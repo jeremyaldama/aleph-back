@@ -141,6 +141,29 @@ export class PurchasePoolResponseDto {
     example: 'open',
   })
   status!: 'draft' | 'open' | 'committed' | 'funded' | 'settled';
+
+  @ApiProperty({ example: 500 })
+  thresholdQuantity!: number;
+}
+
+export class PoolProgressResponseDto {
+  @ApiProperty({ example: 'pool-1711032191000-q9s9p2mz' })
+  poolId!: string;
+
+  @ApiProperty({ example: 500 })
+  thresholdQuantity!: number;
+
+  @ApiProperty({ example: 360 })
+  committedQuantity!: number;
+
+  @ApiProperty({ example: 3 })
+  participatingMerchants!: number;
+
+  @ApiProperty({ example: false })
+  canAggregate!: boolean;
+
+  @ApiProperty({ example: 140 })
+  missingQuantity!: number;
 }
 
 export class MerchantOrderCommitmentResponseDto {

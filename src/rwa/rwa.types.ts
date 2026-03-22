@@ -23,11 +23,21 @@ export interface MerchantProfile {
 export interface PurchasePool {
   poolId: string;
   name: string;
+  thresholdQuantity: number;
   permissioned: boolean;
   allowedMerchants: string[];
   createdAt: string;
   chainPoolAddress?: string;
   status: PoolStatus;
+}
+
+export interface PoolProgress {
+  poolId: string;
+  thresholdQuantity: number;
+  committedQuantity: number;
+  participatingMerchants: number;
+  canAggregate: boolean;
+  missingQuantity: number;
 }
 
 export interface MerchantOrderCommitment {
