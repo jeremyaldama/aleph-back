@@ -12,6 +12,14 @@ services:
         value: https://aleph-front.vercel.app,http://localhost:5173,http://localhost:3000
       - key: AUTH_STORAGE
         value: postgres
+      - key: POOL_MANAGER_CONTRACT
+        value: 0x4b002052F9e0B98065941549B6A54A9815b04353
+      - key: TOKENIZATION_CONTRACT
+        value: 0xF25A5a822484f750d21718eE221339Aecb1E631d
+      - key: POOL_MANAGER_ABI_PATH
+        value: /app/abis/pool-manager.abi.json
+      - key: TOKENIZATION_ABI_PATH
+        value: /app/abis/tokenization.abi.json
       - key: DATABASE_URL
         fromDatabase:
           name: aleph-db
