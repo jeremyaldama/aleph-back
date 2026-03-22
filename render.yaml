@@ -8,6 +8,8 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: CORS_ORIGIN
+        value: https://aleph-front.vercel.app,http://localhost:5173,http://localhost:3000
       - key: AUTH_STORAGE
         value: postgres
       - key: DATABASE_URL
